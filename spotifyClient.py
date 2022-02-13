@@ -5,8 +5,6 @@ import spotipy.util as util
 from urllib.parse import urlencode
 from constants import Constants
 
-SCOPES = Constants.SCOPES
-
 
 class SpotifyClient:
     """
@@ -15,17 +13,17 @@ class SpotifyClient:
 
     def __init__(self, client_id: str, client_secret: str, redirect_uri: str) -> None:
         self.client_id = client_id
-        self.client_secret = client_secret
-        self.authorization_token = ""
+        self.client_secret = client_secret        
         self.redirect_uri = redirect_uri
+        self.authorization_token = ""
 
     def setup(self, scope: str = None) -> None:
         """setup"""
 
-        print("-- Initializing Spotify connection SETUP")
+        print("-- Initializing Spotify connection SETUP --")
 
         all_scopes = ""
-        for scope in SCOPES.values():
+        for scope in Constants.SCOPES.values():
             all_scopes += scope + " "
 
         token = self._get_token(scope=all_scopes)
@@ -91,18 +89,22 @@ class SpotifyClient:
 
         return tracks
 
-    def search_tracks(self, query=None, search_type=None):
+    def search_tracks(self, query = None, search_type = None, album_search = None) -> list:
         """search tracks"""
 
         if query == None:
             raise Exception("Empty query.")
 
-        print(query)
+        items = ['track', 'artist']
+        if album_search == True:
+            items.append('album')        
+        
+        query_build = ""
         if isinstance(query, dict):
-            query = " ".join([f"{key}:{value}" for key, value in query.items()])
-
+            query_build = " ".join([f"{key}:{value}" for key, value in query.items() if key in items])
+        
         endpoint = Constants.SEARCH_ENDPOINT
-        query_params = urlencode({"q": query, "type": search_type.lower()})
+        query_params = urlencode({"q": query_build, "type": search_type.lower()})
 
         url = f"{endpoint}?{query_params}"
         response = self._execute_get_request(url)

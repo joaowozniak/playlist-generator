@@ -9,38 +9,26 @@ load_dotenv()
 
 def main():
 
-    spotify_client = SpotifyClient(
-        os.getenv("CLIENT_ID"), os.getenv("CLIENT_SECRET"), os.getenv("REDIRECT_URI")
-    )
-
-    bandcampScraper = BandcampScraper()
-
-    tracks_names = bandcampScraper.scrape([17])
-    track = tracks_names[-2:]
-
+    # PART 0 - Init session
+    spotify_client = SpotifyClient(os.getenv("CLIENT_ID"), os.getenv("CLIENT_SECRET"), os.getenv("REDIRECT_URI"))       
     spotify_client.setup()
+    
+    #PART 1 - Scrape bandcamp tracks
+    bandcampScraper = BandcampScraper()
+    bandcamp_shows_id_list = [1]
 
-    a = spotify_client.search_tracks(
-        {
-            "track": track[0]["title"],
-            "artist": track[0]["artist"],
-            "album": track[0]["album"][:13],
-        },
-        search_type="track",
-    )
-    print(a)
-    # print(track[0]["title"])
-    # num_tracks_to_visualise = 2
-    # print(
-    #    spotify_client.search(
-    #        {"track": "The Third Adam", "artist": "Nu Era"}, search_type="track"
-    #   )
-    # )
+    tracks_show_id = bandcampScraper.scrape(bandcamp_shows_id_list)
 
-    # last_played_tracks = spotify_client.get_last_played_tracks(num_tracks_to_visualise)
+    #PART 2 - Get recommendations
+    #spotify_recomm = spotify_client.get_track_recommendations(tracks_show_id)
+    #print(tracks_show_id[-1:])
+    print(spotify_client.search_tracks(tracks_show_id[-2:-1][0], search_type='track', album_search=False))
 
-    # print(spotify_client.get_track_recommendations(last_played_tracks))
-
+    #PART 3 - Create + populate playlist 
+    
+    #spotify_client.populate_playlist(spotify_recomm)
+    
+   
 
 if __name__ == "__main__":
     main()

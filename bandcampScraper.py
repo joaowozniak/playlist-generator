@@ -6,9 +6,8 @@ from constants import Constants
 
 class BandcampScraper:
     def scrape(self, show_ids: list):
-
         tracks_names = []
-
+        
         for id in show_ids:
 
             html_text = requests.get(f"https://bandcamp.com/?show={id}").text
@@ -36,7 +35,7 @@ class BandcampScraper:
                     )
 
                     tracks_names.append(
-                        {"title": title, "artist": artist, "album": album}
+                        {"track": title, "artist": artist, "album": album}
                     )
                 except:
                     continue
