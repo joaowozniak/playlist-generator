@@ -1,4 +1,5 @@
 import json, requests, datetime, base64
+from typing import List
 from track import Track
 from playlist import Playlist
 import spotipy.util as util
@@ -20,18 +21,18 @@ class SpotifyClient:
     def setup(self, scope: str = None) -> None:
         """setup"""
 
-        print("-- Initializing Spotify connection SETUP --")
+        print("-- Init Spotify connection --")
 
         all_scopes = ""
         for scope in Constants.SCOPES.values():
             all_scopes += scope + " "
 
-        token = self._get_token(scope=all_scopes)
+        token = self.__get_token(scope=all_scopes)
         self.authorization_token = token
 
         print(f"connection and user are ready!")
 
-    def _get_token(self, scope: str) -> str:
+    def __get_token(self, scope: str) -> str:
         """get token"""
 
         if self.client_id == None or self.client_secret == None:
@@ -52,7 +53,7 @@ class SpotifyClient:
         endpoint = Constants.RECENTLY_PLAYED_ENDPOINT
         url = f"{endpoint}?limit={limit}"
 
-        response = self._execute_get_request(url)
+        response = self.__execute_get_request(url)
         response_json = response.json()
 
         tracks = [
@@ -79,7 +80,7 @@ class SpotifyClient:
         endpoint = Constants.RECOMMENDATIONS
         url = f"{endpoint}?seed_tracks={seed_tracks_url}&limit={limit}"
 
-        response = self._execute_get_request(url)
+        response = self.__execute_get_request(url)
         response_json = response.json()
 
         tracks = [
@@ -89,7 +90,7 @@ class SpotifyClient:
 
         return tracks
 
-    def search_tracks(self, query = None, search_type = None, album_search = None) -> list:
+    def __search_track(self, query = None, search_type = None, album_search = None) -> Track:
         """search tracks"""
 
         if query == None:
@@ -107,18 +108,32 @@ class SpotifyClient:
         query_params = urlencode({"q": query_build, "type": search_type.lower()})
 
         url = f"{endpoint}?{query_params}"
-        response = self._execute_get_request(url)
+        response = self.__execute_get_request(url)
         response_json = response.json()
+        
+        tracks = [
+            Track(track["name"], track["id"], track["artists"][0]["name"], track["album"]["name"])
+            for track in response_json["tracks"]["items"]
+        ]
 
-        return response_json
+        return tracks[0]
 
-    def create_playlist():
+    def get_bandcamp_tracks_from_spotify(self, bandcamp_tracks) -> List[Track]:
+        
+        spotify_tracks = []
+
+        for track in bandcamp_tracks:
+            spotify_tracks.append(self.__search_track(track, 'track'))
+
+        return spotify_tracks            
+
+    def __create_playlist():
         pass
 
     def populate_playlist():
         pass
 
-    def _execute_post_request(self, url, data):
+    def __execute_post_request(self, url, data):
         response = requests.post(
             url,
             data=data,
@@ -129,7 +144,7 @@ class SpotifyClient:
         )
         return response
 
-    def _execute_get_request(self, url):
+    def __execute_get_request(self, url):
         response = requests.get(
             url,
             headers={

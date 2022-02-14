@@ -5,12 +5,13 @@ from constants import Constants
 
 
 class BandcampScraper:
+    
     def scrape(self, show_ids: list):
         tracks_names = []
         
         for id in show_ids:
 
-            html_text = requests.get(f"https://bandcamp.com/?show={id}").text
+            html_text = requests.get(f"{Constants.BANDCAMP_ENDPOINT}?show={id}").text
             soup = BeautifulSoup(html_text, "lxml")
             tracks = json.loads(soup.find(id="pagedata")["data-blob"])
 

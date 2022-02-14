@@ -11,4 +11,6 @@ class Constants():
     RECENTLY_PLAYED_ENDPOINT = "https://api.spotify.com/v1/me/player/recently-played"
     RECOMMENDATIONS = "https://api.spotify.com/v1/recommendations"
 
+    BANDCAMP_ENDPOINT = "https://bandcamp.com/"
+
     REGEX_REMOVE_PARENTHESIS = r"\([^()]*\)"
