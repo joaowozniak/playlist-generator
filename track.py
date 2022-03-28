@@ -6,7 +6,7 @@ class Track:
         self.id = id
         self.artist = artist
         self.album = album
-            
+
     def __str__(self) -> str:
         return f"{self.name} by {self.artist}"
 
