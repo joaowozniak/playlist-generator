@@ -3,16 +3,21 @@ from bandcampShowTracks import BandcampShowTracks
 
 load_dotenv()
 
-
 def main():
 
     # PART 0 - Init session
-    spotify_client = SpotifyClient()
-    print(spotify_client.authorization_token)
+    spotifyClient = SpotifyClient()
+    print(spotifyClient.authorizationToken)
 
     # PART 1 - Scrape bandcamp tracks
-    bandcampShowTracks = BandcampShowTracks([1,2, 6, 9])
+    bandcampShowTracks = BandcampShowTracks([1])
 
+    # PART 2 - Get bandcamp tracks from spotify (if not found returns highest rated track from same artist)
+    spotifyClient.methods.get_bandcamp_tracks_from_spotify(bandcampShowTracks.show_tracks)
+
+    #spotifyClient.methods.populate_spotify_playlist_with_bandcamp_track(bandcampShowTracks)
+    
+    
     # PART 2 - Get recommendations
     #spotify_recomm = spotify_client.methods.get_spotify_track_recommendations(
     #    bandcampShowTracks.show_tracks

@@ -26,14 +26,16 @@ class BandcampShowTracks:
             for i in range(0, len(tracks["bcw_data"][str(id)]["tracks"])): 
                 title, artist, album = None, None, None
 
-                try:                
+                try:        
                     title = re.sub(Constants.REGEX_REMOVE_PARENTHESIS, "", tracks["bcw_data"][str(id)]["tracks"][i]["title"])
-                    for regex in Constants.REGEX_REMOVE_SPECIAL_WORDS: title = re.sub(regex, "", title)
+                    title = title.lower()     
+                    for regex in Constants.REGEX_REMOVE_SPECIAL_WORDS: title = re.sub(regex, "", title)                    
                 except:
                     pass
 
                 try:
                     artist = re.sub(Constants.REGEX_REMOVE_PARENTHESIS, "", tracks["bcw_data"][str(id)]["tracks"][i]["artist"])
+                    artist = artist.lower()
                 except:
                     pass
 
@@ -46,6 +48,7 @@ class BandcampShowTracks:
                     print("Track empty...") 
                     break
 
-                tracks_names.append({"track": title, "artist": artist, "album": album})
+                else:
+                    tracks_names.append({"track": title, "artist": artist, "album": album})
 
         return tracks_names

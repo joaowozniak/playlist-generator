@@ -11,12 +11,12 @@ import os
 
 class SpotifyClient:
     def __init__(self) -> None:
-        self.authorization_token = SpotifyClientSetup(
+        self.authorizationToken = SpotifyClientSetup(
             os.getenv("CLIENT_ID"),
             os.getenv("CLIENT_SECRET"),
             os.getenv("REDIRECT_URI"),
         ).setup()
-        self.methods = SpotifyClientMethods(self.authorization_token)
+        self.methods = SpotifyClientMethods(self.authorizationToken)
 
 
 class SpotifyClientSetup:
@@ -52,7 +52,7 @@ class SpotifyClientMethods:
         self.authorization_token = authorization_token
 
     def get_spotify_track_recommendations(self, seed_tracks, limit=10):
-        seed_bandcamp_tracks = self.__get_tracks_from_spotify(seed_tracks)
+        seed_bandcamp_tracks = self.get_bandcamp_tracks_from_spotify(seed_tracks)
         seed_tracks_url = ""
         count = 0
 
@@ -80,39 +80,52 @@ class SpotifyClientMethods:
         ]
         return tracks
 
-    def __get_tracks_from_spotify(self, bandcamp_tracks) -> List[Track]:
+    def get_bandcamp_tracks_from_spotify(self, bandcamp_tracks) -> List[Track]:
         spotify_tracks = []
         for track in bandcamp_tracks:
-            print(track)
             spotify_tracks.append(self.search_track(track, "track", True))
 
         return spotify_tracks
 
-    def search_track(
-        self, query=None, search_type=None, artist_search=False, album_search=False
-    ) -> List[Track]:
+    def get_search_results(self, query = None, search_type = None, track_search = False, artist_search = False, album_search = False):
         # print("--- Searching track info in Spotify catalog...")
         if query == None:
             raise Exception("Empty query!")
 
-        items = ["track"]  # , 'artist']
-        if artist_search == True:
+        items = []        
+        
+        if artist_search == True: 
             items.append("artist")
-        if album_search == True:
-            items.append("album")
+            
+            query_build = ""
+            if isinstance(query, dict):
+                query_build = " ".join(
+                    [f"{key}:{value}" for key, value in query.items() if key in items]
+                )
 
-        query_build = ""
-        if isinstance(query, dict):
-            query_build = " ".join(
-                [f"{value} " for key, value in query.items() if key in items]
-            )
-
+        if album_search == True: items.append("album")
+        
+        if track_search == True: 
+            items.append("track")  
+            query_build = ""
+            if isinstance(query, dict):
+                query_build = " ".join(
+                    [f"{value} " for key, value in query.items() if key in items]
+                )
+                  
         query_params = urlencode(
             {"q": query_build.lower(), "type": search_type.lower()}
         )
+
         url = f"{Constants.SEARCH_ENDPOINT}?{query_params}"
         response = self.__execute_get_request(url)
         response_json = response.json()
+        
+        return response_json
+
+    def search_track(self, query = None, search_type = None, track_search = False, artist_search = False, album_search = False) -> List[Track]:
+        
+        response_json = self.get_search_results(query, search_type, True)
 
         tracks = [
             Track(
@@ -126,12 +139,41 @@ class SpotifyClientMethods:
 
         if not tracks:
             print(f"Track: {query} not found in Spotify. Trying again ...")
+            print(self.__search_highest_rated_track_from_artist(query))
             return None
 
         else:
             return tracks[0]
 
+    def __search_highest_rated_track_from_artist(self, query) -> Track:
+        
+        response_json = self.get_search_results(query, "track", False, True)
+        max_popularity = 0
+
+        most_popular_track = Track( response_json["tracks"]["items"][0]["name"],
+                                    response_json["tracks"]["items"][0]["id"],
+                                    response_json["tracks"]["items"][0]["artists"][0]["name"],
+                                    response_json["tracks"]["items"][0]["album"]["name"] )
+            
+        for track in response_json["tracks"]["items"]:
+            if int(track["popularity"]) > max_popularity:
+                most_popular_track = Track( track["name"],
+                                        track["id"],
+                                        track["artists"][0]["name"],
+                                        track["album"]["name"] )
+
+                max_popularity = int(track["popularity"])
+        return most_popular_track
+            
     ###################################################
+
+    def populate_spotify_playlist_with_bandcamp_track(self, bandcampTracks: List[Track]) -> None:
+        pass
+
+
+
+
+
 
     def get_spotify_last_played_tracks(self, limit=10):
         print(f"--- Getting last {limit} played tracks ...")
