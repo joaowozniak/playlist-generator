@@ -2,26 +2,28 @@ import requests, json, re
 from bs4 import BeautifulSoup
 from constants import Constants
 
-
 class BandcampShowTracks:
 
     def __init__(self, show_ids: list) -> None:
         self.show_ids = show_ids
-        self.show_tracks = self.__scrape(show_ids)
+        self.show_tracks = self.__scrapeTracks(show_ids)
     
-    def __scrape(self, show_ids: list):
+    def __scrapeTracks(self, show_ids: list):
         tracks_names = []
         
         for id in show_ids:
-
             html_text = requests.get(f"{Constants.BANDCAMP_ENDPOINT}?show={id}").text
             soup = BeautifulSoup(html_text, "lxml")
             tracks = json.loads(soup.find(id="pagedata")["data-blob"])
 
-            print("#################################################################################################")
-            print(id)
+            try:
+                show_length = len(tracks["bcw_data"][str(id)]["tracks"])
+                print(f"Bandcamp weekly show {id} has {show_length} tracks.")
+            except:
+                print(f"Bandcamp show {id} not found!")
+                continue
 
-            for i in range(0, 34): 
+            for i in range(0, len(tracks["bcw_data"][str(id)]["tracks"])): 
                 title, artist, album = None, None, None
 
                 try:                
@@ -40,10 +42,8 @@ class BandcampShowTracks:
                 except:
                     pass
 
-                print(title)
-
                 if (title, artist, album) == (None, None, None):
-                    print("Bandcamp show {id} empty...") 
+                    print("Track empty...") 
                     break
 
                 tracks_names.append({"track": title, "artist": artist, "album": album})
